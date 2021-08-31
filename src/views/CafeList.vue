@@ -48,7 +48,7 @@
 			</tr>
       </tbody>
 		<tbody>
-		<tr v-for="cafe in currentCafeList" :key="cafe.num">
+		<tr v-for="cafe in cafeList" :key="cafe.num">
 			<td>{{cafe.num}}</td>
 			<td>{{cafe.category}}</td>
 			<td>
@@ -104,37 +104,23 @@
 		</ul>
 	
 	</div>
-	
-	<!-- 검색기능 rev. -->
-	<div class="row g-3 align-items-center my-4">
-		<div class="col-auto">
-			<input v-model="searchInput" class="form-control form-control-sm" type="text" id="keyword" name="keyword" placeholder="검색어를 입력하세요."/>
-		</div>
-		<div class="col-auto">
-			<button @click="clickSearch" class="btn btn-sm btn-outline-success">검색</button>
-		</div>
-   </div>	 
 
-	<p v-if="searchedNum != 0" class="my-3" style="font-size:0.875rem;">
-		<strong>{{searchedNum}}</strong> 개의 글이 검색되었습니다.
-	</p>
     
 </div>
 </template>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
 <script>
-import {ajaxPromise} from "@/assets/js/gura_util.js"
+import { ajaxPromise } from "../assets/js/gura_util";
 const base_url="http://localhost:8888/minton05";
 
 export default {
-    name:"app",
+    name:"cafeList",
     data(){
         return {
             firstNotice:{},
             searchInput: '',
             searchedNum:0,
             cafeList:[],
-            currentCafeList:[],
             base_url,
             detailItem:{},
             startPageNum:1,
@@ -155,38 +141,7 @@ export default {
     methods:{
         movePage(pageNum){
             this.pageNum=pageNum;
-            this.updateUI;
-        },
-        clickSearch(){
-            //제목에서 필터한 배열
-            let titleFiltered = this.currentCafeList.filter(item=>-1 != item.title.indexOf(this.searchInput));
-            //내용에서 필터한 배열
-            let contentFiltered = this.currentCafeList.filter(item=>-1 != item.content.indexOf(this.searchInput));
-            //제목 + 내용 필터한 배열
-            let sum = titleFiltered.concat(contentFiltered);
-            //indexOf 값과 배열에 위치하는 값이 같은 값을 추출 = 합집합
-            let union = sum.filter((item,index)=>sum.indexOf(item)===index);
-            //검색 결과에 넣어준다.
-            this.currentCafeList=union;
-            //검색 결과의 개수를 모델에 넣어준다.
-            this.searchedNum = union.length;
-            //검색 결과에 따라 list, paging 처리를 다시 한다.
-            
-            //하단 페이징 처리 데이터 받아오기
-            ajaxPromise(base_url+"/ajax/cafe/paging.do","get","pageNum="+this.pageNum)
-            .then(function(response){
-
-                return response.json();
-            })
-            .then(function(data){
-                //data는 startPageNum, endPageNum, totalPageCount가 들어 있는 {}
-                //console.log(data);
-                //받아온 데이터를 data의 모델에 넣어준다
-                self.startPageNum=data.startPageNum;
-                self.endPageNum=data.endPageNum;
-                self.totalPageCount=data.totalPageCount;
-                //pageNum을 업데이트 => couputed
-            });
+            this.updateUI();
         },
         updateUI(){
             //cafe 글 목록 요청해서 받아오기
@@ -201,7 +156,6 @@ export default {
                 console.log(data);
                 //받아온 데이터를 data의 모델에 넣어준다
                 self.cafeList=data;
-                self.currentCafeList=data;
             });
             //하단 페이징 처리 데이터 받아오기
             ajaxPromise(base_url+"/ajax/cafe/paging.do","get","pageNum="+this.pageNum)
@@ -233,7 +187,7 @@ export default {
     },
     created(){
         console.log("created");
-        this.updateUI;
+        this.updateUI();
     }
 }
 </script>
